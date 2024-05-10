@@ -35,17 +35,17 @@ local HandleCooldowns = MSBTTriggers.HandleCooldowns
 -------------------------------------------------------------------------------
 
 -- The minimum and maximum amount of time to delay between checking cooldowns.
-local MIN_COOLDOWN_UPDATE_DELAY = 0.1
-local MAX_COOLDOWN_UPDATE_DELAY = 1
+local MIN_COOLDOWN_UPDATE_DELAY  = 0.1
+local MAX_COOLDOWN_UPDATE_DELAY  = 1
 
 -- Spell names.
-local SPELLID_COLD_SNAP		= 11958
-local SPELLID_MIND_FREEZE	= 47528
-local SPELLID_PREPARATION	= 14185
-local SPELLID_READINESS		= 23989
+local SPELLID_COLD_SNAP          = 11958
+local SPELLID_MIND_FREEZE        = 47528
+local SPELLID_PREPARATION        = 14185
+local SPELLID_READINESS          = 23989
 
 -- Death knight rune cooldown.
-local RUNE_COOLDOWN = 10
+local RUNE_COOLDOWN              = 10
 
 -- Parameter locations.
 local ITEM_INFO_TEXTURE_POSITION = 10
@@ -58,25 +58,25 @@ local ITEM_INFO_TEXTURE_POSITION = 10
 local _
 
 -- Dynamically created frame for receiving events.
-local eventFrame = CreateFrame("Frame")
+local eventFrame                 = CreateFrame("Frame")
 
 -- Player's class.
 local playerClass
 
 -- Cooldown information.
-local activeCooldowns = {player={}, pet={}, item={}}
-local delayedCooldowns = {player={}, pet={}, item={}}
-local resetAbilities = {}
-local runeCooldownAbilities = {}
-local lastCooldownIDs = {}
-local watchItemIDs = {}
+local activeCooldowns            = { player = {}, pet = {}, item = {} }
+local delayedCooldowns           = { player = {}, pet = {}, item = {} }
+local resetAbilities             = {}
+local runeCooldownAbilities      = {}
+local lastCooldownIDs            = {}
+local watchItemIDs               = {}
 
 -- Used for timing between updates.
-local updateDelay = MIN_COOLDOWN_UPDATE_DELAY
-local lastUpdate = 0
+local updateDelay                = MIN_COOLDOWN_UPDATE_DELAY
+local lastUpdate                 = 0
 
 -- Flag for whether item cooldowns are enabled.
-local itemCooldownsEnabled = true
+local itemCooldownsEnabled       = true
 
 
 -------------------------------------------------------------------------------
@@ -156,6 +156,9 @@ end
 local function OnUpdateCooldown(cooldownType, cooldownFunc)
 	if (not delayedCooldowns[cooldownType] or not activeCooldowns[cooldownType]) then return end
 
+	if cooldownFunc == nil then
+		return
+	end
 	-- Start delayed cooldowns once they have been used.
 	for cooldownID in pairs(delayedCooldowns[cooldownType]) do
 		-- Check if the cooldown is enabled yet.
@@ -204,7 +207,7 @@ local function OnUpdateCooldown(cooldownType, cooldownFunc)
 				if (not eventFrame:IsVisible()) then eventFrame:Show() end
 			end
 
-		-- Cooldown is NOT enabled so add it to the delayed cooldowns list.
+			-- Cooldown is NOT enabled so add it to the delayed cooldowns list.
 		else
 			delayedCooldowns[cooldownType][cooldownID] = true
 		end
@@ -230,9 +233,9 @@ local function OnUpdate(frame, elapsed)
 		local currentTime = GetTime()
 		for cooldownID, usedTime in pairs(watchItemIDs) do
 			if (currentTime >= (usedTime + 1)) then
-	lastCooldownIDs["item"] = cooldownID
+				lastCooldownIDs["item"] = cooldownID
 				OnUpdateCooldown("item", GetItemCooldown)
-	watchItemIDs[cooldownID] = nil
+				watchItemIDs[cooldownID] = nil
 				break
 			end
 		end
@@ -268,7 +271,9 @@ local function OnUpdate(frame, elapsed)
 						end
 						if (eventSettings and not eventSettings.disabled) then
 							local message = eventSettings.message
-							local formattedSkillName = string_format("|cFF%02x%02x%02x%s|r", eventSettings.skillColorR * 255, eventSettings.skillColorG * 255, eventSettings.skillColorB * 255, string_gsub(cooldownName, "%(.+%)%(%)$", ""))
+							local formattedSkillName = string_format("|cFF%02x%02x%02x%s|r",
+								eventSettings.skillColorR * 255, eventSettings.skillColorG * 255,
+								eventSettings.skillColorB * 255, string_gsub(cooldownName, "%(.+%)%(%)$", ""))
 							message = string_gsub(message, "%%e", formattedSkillName)
 							DisplayEvent(eventSettings, message, texture)
 						end
@@ -276,13 +281,13 @@ local function OnUpdate(frame, elapsed)
 						-- Remove the cooldown from active cooldowns.
 						cooldowns[cooldownID] = nil
 
-					-- Cooldown NOT completed.
+						-- Cooldown NOT completed.
 					else
 						cooldowns[cooldownID] = cooldownRemaining
 						if (cooldownRemaining < updateDelay) then updateDelay = cooldownRemaining end
 					end
 
-				-- Cooldown is no longer valid.
+					-- Cooldown is no longer valid.
 				else
 					cooldowns[cooldownID] = nil
 				end
@@ -313,7 +318,6 @@ function eventFrame:UNIT_SPELLCAST_SUCCEEDED(unitID, lineID, skillID)
 	if (unitID == "player") then OnSpellCast("player", skillID) end
 end
 
-
 -- ****************************************************************************
 -- Combat log event for detecting pet casts.
 -- ****************************************************************************
@@ -321,11 +325,11 @@ function eventFrame:COMBAT_LOG_EVENT_UNFILTERED()
 	eventFrame:CombatLogEvent(CombatLogGetCurrentEventInfo())
 end
 
-function eventFrame:CombatLogEvent(timestamp, event, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, recipientGUID, recipientName, recipientFlags, recipientRaidFlags, skillID)
+function eventFrame:CombatLogEvent(timestamp, event, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags,
+								   recipientGUID, recipientName, recipientFlags, recipientRaidFlags, skillID)
 	if (event ~= "SPELL_CAST_SUCCESS") then return end
 	if (sourceGUID == UnitGUID("pet")) then OnSpellCast("pet", skillID) end
 end
-
 
 -- ****************************************************************************
 -- Called when spell cooldowns begin.
@@ -334,14 +338,12 @@ function eventFrame:SPELL_UPDATE_COOLDOWN()
 	OnUpdateCooldown("player", GetSpellCooldown)
 end
 
-
 -- ****************************************************************************
 -- Called when pet cooldowns begin.
 -- ****************************************************************************
 function eventFrame:PET_BAR_UPDATE_COOLDOWN()
 	OnUpdateCooldown("pet", GetSpellCooldown)
 end
-
 
 -- ****************************************************************************
 -- Updates the registered events depending on active options.
@@ -452,7 +454,7 @@ end
 
 -- Setup event frame.
 eventFrame:Hide()
-eventFrame:SetScript("OnEvent", function (self, event, ...)
+eventFrame:SetScript("OnEvent", function(self, event, ...)
 	if (self[event]) then
 		self[event](self, ...)
 	end
@@ -484,6 +486,6 @@ runeCooldownAbilities[SPELLID_MIND_FREEZE] = true
 -------------------------------------------------------------------------------
 
 -- Protected Functions.
-module.Enable					= Enable
-module.Disable					= Disable
-module.UpdateRegisteredEvents	= UpdateRegisteredEvents
+module.Enable                 = Enable
+module.Disable                = Disable
+module.UpdateRegisteredEvents = UpdateRegisteredEvents
