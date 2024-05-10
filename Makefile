@@ -1,6 +1,6 @@
 current_version := $(shell sed -nE 's/^## Version: ([0-9]+\.[0-9]+\.[0-9]+)/\1/p' MikScrollingBattleText/MikScrollingBattleText.toc)
 incremented_version := $(shell echo ${current_version} | awk -F. '{$$NF = $$NF + 1;} 1' | sed 's/ /./g')
-git_tag := "Release: ${incremented_version}"
+git_tag := "v${incremented_version}"
 
 build:
 	cp -r MikScrollingBattleText /mnt/d/Games/World\ of\ Warcraft/_classic_/Interface/AddOns/
