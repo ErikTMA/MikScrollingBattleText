@@ -15,7 +15,7 @@ jobs:
 
       - name: Set Release Name
         id: set_release_name
-        run: echo "::set-output name=release_name::${GITHUB_REF#refs/tags/release:}"
+        run: echo "::set-output name=release_name::${GITHUB_REF#refs/tags/}"
 
       - name: Create Release
         id: create_release
