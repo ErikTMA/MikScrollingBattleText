@@ -3,7 +3,7 @@ name: Create Release
 on:
   push:
     tags:
-      - "release:*"
+      - "Release:*"
 
 jobs:
   create_release:
